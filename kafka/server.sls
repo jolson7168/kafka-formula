@@ -14,6 +14,20 @@ kafka-directories:
       - {{ log_dir }}
 {% endfor %}
 
+
+install-kafka-dist:
+  cmd.run:
+    - name: curl -L '{{ kafka.source_url }}' | tar xz
+    - cwd: /usr/lib
+    - unless: test -d {{ kafka.real_home }}/config
+  alternatives.install:
+    - name: kafka-home-link
+    - link: {{ kafka.prefix }}
+    - path: {{ kafka.real_home }}
+    - priority: 30
+    - require:
+      - cmd: install-kafka-dist
+
 kafka-server-conf:
   file.managed:
     - name: {{ kafka.real_home }}/config/server.properties
@@ -22,6 +36,7 @@ kafka-server-conf:
     - group: kafka
     - mode: 644
     - template: jinja
+    - priority: 30
     - require:
       - cmd: install-kafka-dist
 
