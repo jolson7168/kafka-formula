@@ -6,7 +6,7 @@ kafka:
   user.present:
     - createhome: false
     - password: true
-    - shell: /usr/sbin/nologin
+    - shell: /bin/bash
     - gid_from_name: True
     - groups:
       - kafka

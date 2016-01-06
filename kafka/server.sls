@@ -3,16 +3,18 @@
 include:
   - kafka
 
+/etc/kafka:
+  file.directory:
+    - user: root
+    - group: root
+
 kafka-directories:
   file.directory:
     - user: kafka
     - group: kafka
     - mode: 755
     - makedirs: True
-    - names:
-{% for log_dir in config.log_dirs %}
-      - {{ log_dir }}
-{% endfor %}
+    - names: [{{ config.log_dirs|join(",") }}]
 
 
 install-kafka-dist:
@@ -46,7 +48,7 @@ kafka-server-conf:
     - mode: 644
     - template: jinja
     - context:
-      workdir: {{ kafka.prefix }}
+        workdir: {{ kafka.prefix }}
     - require:
       - file: kafka-server-conf
 

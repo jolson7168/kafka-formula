@@ -1,0 +1,21 @@
+{% import_yaml "kafka/defaults.yaml" as defaults %}
+
+#{% set kafka = salt['pillar.get']('kafka', default=defaults.kafka, merge=True) %}
+
+{% set kafka_name = defaults.kafka.name_template|format(version=defaults.kafka.version, scala_version=defaults.kafka.scala_version) %}
+
+{% set real_home =  "%s/%s" % (defaults.kafka.prefix, defaults.kafka.kafka_name) %}
+
+{% do defaults.kafka.update({
+    'name': kafka_name,
+    'real_home': real_home,
+    'alt_home': '%s/kafka' % defaults.kafka.prefix,
+    'bin_dir': real_home + '/bin',
+    'conf_dir': real_home + '/config',
+    'host_name': salt['grains.get']('host'),
+    'fqdn': salt['grains.get']('fqdn')})  %}
+
+#{% set config = salt['pillar.get']('kafka:config', default=defaults.config, merge=True) %}
+
+{% set config = salt['pillar.get']('kafka:config', default=defaults.config, merge=True) %}
+{% set kafka = salt['pillar.get']('kafka', default=defaults.kafka, merge=True) %}

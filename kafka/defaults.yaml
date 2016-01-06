@@ -1,0 +1,30 @@
+
+kafka:
+  name_template: 'kafka_%(scala_version)s-%(version)s'
+  version: '0.8.2.2'
+  scala_version: '2.10'
+  prefix: /usr/local
+  default_url_template: 'http://apache.mirrors.tds.net/kafka/%(version)s/%(name)s.tgz'
+  
+
+
+config:
+  broker_id: 42
+  port: 9093
+    
+  num_partitions: 1
+  num_network_threads: 2
+  num_io_threads: 8
+      
+  zookeeper_chroot: '/kafka'
+  zookeeper_connection_timeout_ms: 1000000
+
+  socket_request_buffer_bytes: 1048576
+  socket_send_buffer_bytes: 1048576
+  socket_request_buffer_bytes: 104857600
+        
+  log_dir: /tmp/kafka-logs
+  log_retention_hours: 168
+  log_segment_bytes: 5368709122
+  log_retention_check_interval_ms: 60000
+  log_cleaner_enable: false
