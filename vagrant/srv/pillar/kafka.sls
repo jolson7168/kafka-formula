@@ -1,9 +1,15 @@
 java_home: /usr/lib/jvm/java-7-openjdk-amd64
 
 kafka:
+
+  lookup:
+    version: '0.8.2.2'
+    scala_version: '2.10'
+    prefix: '/usr/lib'
+    
   config:
-    zookeeper_connect: localhost:2181
-    broker_id: 0
+    zookeeper:
+      chroot: '/kafka'
     host_name: 'salt-master'
     advertised_host_name: 'salt-master'
 

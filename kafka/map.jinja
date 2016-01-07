@@ -1,21 +1,10 @@
-{% import_yaml "kafka/defaults.yaml" as defaults %}
+{% from  "kafka/defaults.yaml" import rawmap with context %}
+{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka')) %}
 
-#{% set kafka = salt['pillar.get']('kafka', default=defaults.kafka, merge=True) %}
+{% set real_name = kafka.get('name_template') % kafka %}
+{% set default_url = kafka.get('mirror_template') % {'version': kafka.get('version'), 'name': real_name} %}
+{% set real_home = '%s/%s' % (kafka.get('prefix'), real_name) %}
+{% set alt_name = '%s/kafka' % kafka.get('prefix') %}
 
-{% set kafka_name = defaults.kafka.name_template|format(version=defaults.kafka.version, scala_version=defaults.kafka.scala_version) %}
-
-{% set real_home =  "%s/%s" % (defaults.kafka.prefix, defaults.kafka.kafka_name) %}
-
-{% do defaults.kafka.update({
-    'name': kafka_name,
-    'real_home': real_home,
-    'alt_home': '%s/kafka' % defaults.kafka.prefix,
-    'bin_dir': real_home + '/bin',
-    'conf_dir': real_home + '/config',
-    'host_name': salt['grains.get']('host'),
-    'fqdn': salt['grains.get']('fqdn')})  %}
-
-#{% set config = salt['pillar.get']('kafka:config', default=defaults.config, merge=True) %}
-
-{% set config = salt['pillar.get']('kafka:config', default=defaults.config, merge=True) %}
-{% set kafka = salt['pillar.get']('kafka', default=defaults.kafka, merge=True) %}
+{% set meta = {} %}
+{% do meta.update({'real_name': real_name, 'default_url': default_url, 'real_home': real_home, 'alt_name': alt_name}) %}

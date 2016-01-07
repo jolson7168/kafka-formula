@@ -1,61 +1,90 @@
-{%- from 'kafka/settings.sls' import kafka, config with context %}
+{% from  "kafka/defaults.yaml" import rawmap with context %}
+{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka')) %}
+
+{% set real_name = kafka.name_template % kafka %}
+{% set default_url = kafka.mirror_template % {'version': kafka.version, 'name': real_name} %}
+{% set real_home = '%s/%s' % (kafka.prefix, real_name) %}
+{% set alt_name = '%s/kafka' % kafka.prefix %}
+{% set source_url = salt['pillar.get']('kafka:source_url', default_url) %}
 
 include:
   - kafka
 
-/etc/kafka:
+# create the log dirs for brokers
+kafka|log-directories:
   file.directory:
-    - user: root
-    - group: root
-
-kafka-directories:
-  file.directory:
-    - user: kafka
-    - group: kafka
+    - user: {{ kafka.user }}
+    - group: {{ kafka.user }}
     - mode: 755
     - makedirs: True
-    - names: [{{ config.log_dirs|join(",") }}]
+    - name: {{ kafka.config.log.dir }}
+    - recurse:
+        - user
+        - group
 
 
-install-kafka-dist:
+kafka|install-dist:
   cmd.run:
-    - name: curl -L '{{ kafka.source_url }}' | tar xz
-    - cwd: /usr/lib
-    - unless: test -d {{ kafka.real_home }}/config
+    - name: curl -L '{{ source_url }}' | tar xz
+    - cwd: {{ kafka.prefix }}
+    - unless: test -f {{ real_home }}/config/server.properties
+    - require:
+        - file: kafka|log-directories
+        - sls: kafka
+          
   alternatives.install:
     - name: kafka-home-link
-    - link: {{ kafka.prefix }}
-    - path: {{ kafka.real_home }}
+    - link: {{ alt_name }}
+    - path: {{ real_home }}
     - priority: 30
     - require:
-      - cmd: install-kafka-dist
+      - cmd: kafka|install-dist
 
-kafka-server-conf:
+kafka|server-conf:
   file.managed:
-    - name: {{ kafka.real_home }}/config/server.properties
-    - source: salt://kafka/config/server.properties
-    - user: kafka
-    - group: kafka
+    - name: {{ real_home }}/config/server.properties
+    - source: salt://kafka/files/server.properties
+    - user: {{ kafka.user }}
+    - group: {{ kafka.user }}
     - mode: 644
     - template: jinja
     - priority: 30
     - require:
-      - cmd: install-kafka-dist
+      - cmd: kafka|install-dist
 
-/etc/init/kafka.conf:
+kafka|log4j-conf:
   file.managed:
-    - source: salt://kafka/config/kafka.init.conf
+    - name: {{ real_home }}/config/log4j.properties
+    - source: salt://kafka/files/log4j.properties
+    - user: {{ kafka.user }}
+    - group: {{ kafka.user }}
+    - mode: 644
+    - template: jinja
+    - priority: 30
+    - context:
+        log_dir: {{ kafka.config.log.dir }}
+    - require:
+      - cmd: kafka|install-dist
+
+kafka|upstart-config:
+  file.managed:
+    - name: /etc/init/kafka.conf
+    - source: salt://kafka/files/kafka.init.conf
     - mode: 644
     - template: jinja
     - context:
-        workdir: {{ kafka.prefix }}
+        bindir: {{ real_home }}/bin
+        confdir: {{ real_home }}/config
+        user: {{ kafka.user }}
+        log_dir: {{ kafka.config.log.dir }}
     - require:
-      - file: kafka-server-conf
+      - file: kafka|server-conf
 
-kafka-service:
+kafka|service:
   service.running:
-    - name: kafka
+    - name: {{ kafka.service }}
     - enable: true
+    - init_delay: 3
     - watch:
-      - file: kafka-server-conf
-      - file: /etc/init/kafka.conf
+      - file: kafka|upstart-config
+      - file: kafka|server-conf

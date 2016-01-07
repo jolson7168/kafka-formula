@@ -1,0 +1,18 @@
+kafka:
+  source_url: 'http://apache.mirrors.tds.net/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz'
+
+  lookup:
+    version: '0.8.2.2'
+    scala_version: '2.10'
+    prefix: '/usr/lib/kafka'
+
+  config:
+    num_partitions: 3
+    zookeeper_chroot: '/kafka'
+    broker_id: {{ grains['get']('node_index', '42') }}
+    listeners:
+      - "plaintext://:9092"
+
+    log:
+      dirs:
+        - /mnt/kafka/logs/1

@@ -1,21 +1,27 @@
-{%- from 'kafka/settings.sls' import kafka with context %}
+{%- from 'kafka/map.jinja' import kafka, meta with context %}
 
-kafka:
+kafka|user:
   group.present:
-    - name: kafka
+    - name: {{ kafka.user }}
   user.present:
+    - name: {{ kafka.user }}
+    - fullname: "Kafka Broker"
     - createhome: false
     - password: true
     - shell: /bin/bash
     - gid_from_name: True
     - groups:
-      - kafka
+      - {{ kafka.user }}
 
-# fix permissions
-{{ kafka.real_home }}:
+kafka|directories:
   file.directory:
-    - user: kafka
-    - group: kafka
+    - user: {{ kafka.user }}
+    - group: {{ kafka.user }}
+    - mode: 755
+    - names:
+        - {{ meta.real_home }}
+        - {{ kafka.config_dir }}
     - recurse:
-      - user
-      - group
+        - user
+        - group
+
