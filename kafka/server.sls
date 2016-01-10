@@ -7,6 +7,9 @@
 {% set alt_name = '%s/kafka' % kafka.prefix %}
 {% set source_url = salt['pillar.get']('kafka:source_url', default_url) %}
 
+{%- from 'zookeeper/settings.sls' import zk with context %}
+{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
+
 include:
   - kafka
 
@@ -51,7 +54,9 @@ kafka|server-conf:
     - priority: 30
     - require:
       - cmd: kafka|install-dist
-
+    - context:
+        zk_list: {{ zk_servers }}
+        zk_port: {{ salt['pillar.get']("zookeeper:config:port", 2181) }}
 kafka|log4j-conf:
   file.managed:
     - name: {{ real_home }}/config/log4j.properties
@@ -68,23 +73,34 @@ kafka|log4j-conf:
 
 kafka|upstart-config:
   file.managed:
-    - name: /etc/init/kafka.conf
+    - name: /etc/init/{{ kafka.service }}.conf
     - source: salt://kafka/files/kafka.init.conf
     - mode: 644
     - template: jinja
     - context:
-        bindir: {{ real_home }}/bin
+        home: {{ real_home }}
         confdir: {{ real_home }}/config
         user: {{ kafka.user }}
         log_dir: {{ kafka.config.log.dir }}
+        java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}
     - require:
       - file: kafka|server-conf
+
+kafka|enabled-file:
+  file.managed:
+    - name: /etc/default/{{ kafka.service }}
+    - mode: 644
+    - user: root
+    - group: root
+    - contents: |
+        ENABLE="yes"
 
 kafka|service:
   service.running:
     - name: {{ kafka.service }}
     - enable: true
-    - init_delay: 3
+    - init_delay: 10
     - watch:
+      - file: kafka|enabled-file
       - file: kafka|upstart-config
       - file: kafka|server-conf

@@ -1,7 +1,7 @@
 {% load_yaml as rawmap %}
 Ubuntu:
   user: kafka
-  service: kafka
+  service: kafka-broker
   prefix: /usr/local  
   version: '0.8.2.2'
   scala_version: '2.10'
