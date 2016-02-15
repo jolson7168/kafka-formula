@@ -4,14 +4,13 @@ kafka|user:
   group.present:
     - name: {{ kafka.user }}
   user.present:
+    - order: 30
     - name: {{ kafka.user }}
     - fullname: "Kafka Broker"
     - createhome: false
     - password: true
-    - shell: /bin/bash
+    - system: true
     - gid_from_name: True
-    - groups:
-      - {{ kafka.user }}
 
 kafka|directories:
   file.directory:
