@@ -1,14 +1,13 @@
 {% from  "kafka/defaults.yaml" import rawmap with context %}
 {% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka')) %}
-
+{% set config = kafka.get('config') %}
 {% set real_name = kafka.name_template % kafka %}
 {% set default_url = kafka.mirror_template % {'version': kafka.version, 'name': real_name} %}
 {% set real_home = '%s/%s' % (kafka.prefix, real_name) %}
 {% set alt_name = '%s/kafka' % kafka.prefix %}
 {% set source_url = salt['pillar.get']('kafka:source_url', default_url) %}
 
-{%- from 'zookeeper/settings.sls' import zk with context %}
-{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
+{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').keys() %}
 
 include:
   - kafka
@@ -57,6 +56,7 @@ kafka|server-conf:
     - context:
         zk_list: {{ zk_servers }}
         zk_port: {{ salt['pillar.get']("zookeeper:config:port", 2181) }}
+
 kafka|log4j-conf:
   file.managed:
     - name: {{ real_home }}/config/log4j.properties
