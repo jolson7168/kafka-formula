@@ -42,6 +42,7 @@ kafka|install-dist:
     - require:
       - cmd: kafka|install-dist
 
+{% with port =  salt['pillar.get']("zookeeper:config:port", 2181) %}
 kafka|server-conf:
   file.managed:
     - name: {{ real_home }}/config/server.properties
@@ -54,8 +55,11 @@ kafka|server-conf:
     - require:
       - cmd: kafka|install-dist
     - context:
-        zk_list: {{ zk_servers }}
-        zk_port: {{ salt['pillar.get']("zookeeper:config:port", 2181) }}
+        zk_list:
+          {%- for i in zk_servers %}
+          - {{ '%s:%d'|format(i, port)}}
+          {%- endfor %}
+{% endwith %}
 
 kafka|log4j-conf:
   file.managed:
