@@ -7,7 +7,7 @@
 {% set alt_name = '%s/kafka' % kafka.prefix %}
 {% set source_url = salt['pillar.get']('kafka:source_url', default_url) %}
 
-{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').keys() %}
+{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
 
 include:
   - kafka
@@ -57,7 +57,7 @@ kafka|server-conf:
     - context:
         zk_list:
           {%- for i in zk_servers %}
-          - {{ '%s:%d'|format(i, port)}}
+          - {{ '%s:%d'|format(i|first, port)}}
           {%- endfor %}
 {% endwith %}
 

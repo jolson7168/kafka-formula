@@ -8,7 +8,6 @@ kafka|user:
     - name: {{ kafka.user }}
     - fullname: "Kafka Broker"
     - createhome: false
-    - password: true
     - system: true
     - gid_from_name: True
 
@@ -23,4 +22,5 @@ kafka|directories:
     - recurse:
         - user
         - group
-
+    - require:
+        - user: kafka|user
