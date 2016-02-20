@@ -12,18 +12,22 @@
 include:
   - kafka
 
+{% with work_dirs = kafka.config.log.dirs + [kafka.config_dir, kafka.config.log.dir] %}
 # create the log dirs for brokers
-kafka|log-directories:
+{% for dir in work_dirs %}
+kafka|{{ dir }}:
   file.directory:
     - user: {{ kafka.user }}
     - group: {{ kafka.user }}
     - mode: 755
+    - order: 10
     - makedirs: True
-    - name: {{ kafka.config.log.dir }}
+    - name: {{ dir }}
     - recurse:
         - user
         - group
-
+{% endfor %}
+{% endwith %}
 
 kafka|install-dist:
   cmd.run:
@@ -31,7 +35,6 @@ kafka|install-dist:
     - cwd: {{ kafka.prefix }}
     - unless: test -f {{ real_home }}/config/server.properties
     - require:
-        - file: kafka|log-directories
         - sls: kafka
           
   alternatives.install:

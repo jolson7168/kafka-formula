@@ -2,7 +2,9 @@
 Ubuntu:
   user: kafka
   service: kafka-broker
-  prefix: /usr/local  
+  prefix: /usr/local
+  config_dir: /etc/kafka
+  
   version: '0.8.2.2'
   scala_version: '2.10'
   
@@ -107,7 +109,7 @@ Ubuntu:
       chroot: '/kafka'
       connect:
         - 'localhost:2181'
-      connection.timeout.ms: ~
+      connection.timeout.ms: 6000
       session.timeout.ms: 6000
       set.acl: false
 
@@ -194,8 +196,8 @@ Ubuntu:
       broker.protocol.version: ~
 
     max:
-      connections.per.ip: 2147483647
-      connections.per.io.overrides: ""
+      connections.per.ip: ~
+      connections.per.io.overrides: ~
 
     producer:
       purgatory.purge.interval.requests: 1000
