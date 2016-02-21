@@ -1,5 +1,5 @@
 {% from  "kafka/defaults.yaml" import rawmap with context %}
-{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka')) %}
+{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
 
 {% set real_name = kafka.get('name_template') % kafka %}
 {% set default_url = kafka.get('mirror_template') % {'version': kafka.get('version'), 'name': real_name} %}

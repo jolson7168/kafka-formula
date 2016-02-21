@@ -13,7 +13,7 @@ Ubuntu:
   # Unless kafka changes the format or this mirror is no bueno, dont touch!
   name_template: 'kafka_%(scala_version)s-%(version)s'
   mirror_template: 'http://apache.mirrors.tds.net/kafka/%(version)s/%(name)s.tgz'
-
+  
   config:
     port: 9092
     
