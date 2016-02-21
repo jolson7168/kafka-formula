@@ -4,6 +4,7 @@ Ubuntu:
   service: kafka-broker
   prefix: /usr/local
   config_dir: /etc/kafka
+  data_dir: /tmp/kafka-logs
   
   version: '0.8.2.2'
   scala_version: '2.10'
@@ -42,10 +43,11 @@ Ubuntu:
       leader.rebalance.enable: True
       
     log:
-      dir: /tmp/kafka/logs
-      dirs:
-        - /tmp/kafka/data
-        
+      # You can have a single directory
+      dir: ~
+      # or a list of directories for writing logs
+      dirs: ~
+      
       # num of messages to accept before forcing a flush
       flush.interval.messages: 1000
 

@@ -22,5 +22,6 @@ kafka|directories:
     - recurse:
         - user
         - group
+    - order: 10
     - require:
         - user: kafka|user

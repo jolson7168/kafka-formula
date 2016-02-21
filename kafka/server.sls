@@ -1,5 +1,5 @@
 {% from  "kafka/defaults.yaml" import rawmap with context %}
-{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka')) %}
+{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
 {% set config = kafka.get('config') %}
 {% set real_name = kafka.name_template % kafka %}
 {% set default_url = kafka.mirror_template % {'version': kafka.version, 'name': real_name} %}
@@ -12,22 +12,29 @@
 include:
   - kafka
 
-{% with work_dirs = kafka.config.log.dirs + [kafka.config_dir, kafka.config.log.dir] %}
-# create the log dirs for brokers
-{% for dir in work_dirs %}
-kafka|{{ dir }}:
-  file.directory:
-    - user: {{ kafka.user }}
-    - group: {{ kafka.user }}
-    - mode: 755
-    - order: 10
-    - makedirs: True
-    - name: {{ dir }}
-    - recurse:
-        - user
-        - group
-{% endfor %}
-{% endwith %}
+# {% set work_dirs = [] %}
+# {% if kafka.config.log.dirs is not string and kafka.config.log.dirs is sequence %}
+#   {% do work_dirs.extend(kafka.config.log.dirs) %}
+# {% elif kafka.config.log.dir is string %}
+#   {% do work_dirs.append(kafka.config.log.dir) %}
+# {% endif %}
+# {% if work_dirs|length >= 1 %}
+# # create the log dirs for brokers
+# kafka|create-directories:
+#   file.directory:
+#     - user: {{ kafka.user }}
+#     - group: {{ kafka.user }}
+#     - mode: 755
+#     - order: 10
+#     - makedirs: True
+#     - names:
+#         {%- for i in work_dirs %}
+#         - {{ i }}
+#         {%- endfor %}
+#     - recurse:
+#         - user
+#         - group
+# {% endif %}
 
 kafka|install-dist:
   cmd.run:
@@ -46,9 +53,10 @@ kafka|install-dist:
       - cmd: kafka|install-dist
 
 {% with port =  salt['pillar.get']("zookeeper:config:port", 2181) %}
+
 kafka|server-conf:
   file.managed:
-    - name: {{ real_home }}/config/server.properties
+    - name: {{ kafka.config_dir }}/server.properties
     - source: salt://kafka/files/server.properties
     - user: {{ kafka.user }}
     - group: {{ kafka.user }}
@@ -66,7 +74,7 @@ kafka|server-conf:
 
 kafka|log4j-conf:
   file.managed:
-    - name: {{ real_home }}/config/log4j.properties
+    - name: {{ kafka.config_dir }}/log4j.properties
     - source: salt://kafka/files/log4j.properties
     - user: {{ kafka.user }}
     - group: {{ kafka.user }}
@@ -74,7 +82,7 @@ kafka|log4j-conf:
     - template: jinja
     - priority: 30
     - context:
-        log_dir: {{ kafka.config.log.dir }}
+        log_dir: {{ kafka.data_dir }}
     - require:
       - cmd: kafka|install-dist
 
@@ -86,9 +94,9 @@ kafka|upstart-config:
     - template: jinja
     - context:
         home: {{ real_home }}
-        confdir: {{ real_home }}/config
+        confdir: {{ kafka.config_dir }}
         user: {{ kafka.user }}
-        log_dir: {{ kafka.config.log.dir }}
+        log_dir: {{ kafka.data_dir }}
         java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}
     - require:
       - file: kafka|server-conf
