@@ -13,7 +13,7 @@ Ubuntu:
   # Unless kafka changes the format or this mirror is no bueno, dont touch!
   name_template: 'kafka_%(scala_version)s-%(version)s'
   mirror_template: 'http://apache.mirrors.tds.net/kafka/%(version)s/%(name)s.tgz'
-  
+
   config:
     port: 9092
     
@@ -24,10 +24,10 @@ Ubuntu:
     compression:
       # can also be gzip|snappy|lz4
       # producer will retain the codec set by the producer
-      type: producer
+      type: gzip
 
     delete:
-      topic.enable: False
+      topic.enable: false
       
     advertised:
       host.name: ~
@@ -54,27 +54,27 @@ Ubuntu:
       # max time before flushing to disk
       flush.interval.ms: 10000
 
-      flush.offset.checkpoint.interval.ms: 60000
-      flush.scheduler.interval.ms: 9223372036854775807
+      # flush.offset.checkpoint.interval.ms: 60000
+      # flush.scheduler.interval.ms: 9223372036854775807
       
       retention.bytes: -1
       # check file eligibility for deletion
-      retention.check.interval.ms: 300000
+      # retention.check.interval.ms: 300000
       
       # minimum age required for deletion
       retention.hours: 168
       # if set, overrides hours
-      retention.minutes: ~
-      # if set, overrides hours & minutes
-      retention.ms: ~
+      # retention.minutes: ~
+      # # if set, overrides hours & minutes
+      # retention.ms: ~
 
-      roll.hours: 160
-      roll.jitter.hours: 0
-      roll.jitter.ms: ~
+      # roll.hours: 160
+      # roll.jitter.hours: 0
+      # roll.jitter.ms: ~
 
-      # max size of a log segment files 
-      segment.bytes: 1073741824
-      segment.delete.delay.ms: 60000
+      # # max size of a log segment files 
+      # segment.bytes: 1073741824
+      # segment.delete.delay.ms: 60000
       
       
 
@@ -94,11 +94,11 @@ Ubuntu:
       # can be delete or compact
       cleanup.policy: delete
       
-      index.interval.bytes: 4096
-      index.size.max.bytes: 10485760
+      # index.interval.bytes: 4096
+      # index.size.max.bytes: 10485760
 
-      # pre allocate a file before using new segment, set to true on winblows
-      preallocate: false
+      # # pre allocate a file before using new segment, set to true on winblows
+      # preallocate: false
 
       
 
