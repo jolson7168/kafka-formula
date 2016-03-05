@@ -36,6 +36,8 @@ kafka|create-directories:
     - recurse:
         - user
         - group
+    - require:
+        - user: {{ kafka.user }}
 {% endif %}
 
 kafka|install-dist:

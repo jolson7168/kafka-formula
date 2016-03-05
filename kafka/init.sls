@@ -1,17 +1,17 @@
 {%- from 'kafka/map.jinja' import kafka, meta with context %}
 
-kafka|user:
+kafka|setup:
   group.present:
     - name: {{ kafka.user }}
+
   user.present:
-    - order: 30
+    - order: 1
     - name: {{ kafka.user }}
     - fullname: "Kafka Broker"
     - createhome: false
     - system: true
     - gid_from_name: True
 
-kafka|directories:
   file.directory:
     - user: {{ kafka.user }}
     - group: {{ kafka.user }}
@@ -22,4 +22,4 @@ kafka|directories:
         - user
         - group
     - require:
-        - user: kafka|user
+        - user: kafka|setup
