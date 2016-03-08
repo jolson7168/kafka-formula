@@ -16,10 +16,12 @@ kafka|setup:
     - user: {{ kafka.user }}
     - group: {{ kafka.user }}
     - mode: 755
+    - makedirs: true
     - names:
         - {{ meta.real_home }}
     - recurse:
         - user
         - group
+    - unless: test -d {{ meta.real_home }}
     - require:
         - user: kafka|setup
