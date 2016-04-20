@@ -1,13 +1,23 @@
-{% from  "kafka/defaults.yaml" import rawmap with context %}
-{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
+{% from "kafka/map.jinja" import kafka, meta with context %}
+{% set source_url = salt['pillar.get']('kafka:source_url', meta.default_url) %}
 
-{% set real_name = kafka.name_template % kafka %}
-{% set default_url = kafka.mirror_template % {'version': kafka.version, 'name': real_name} %}
-{% set source_url = salt['pillar.get']('kafka:source_url', default_url) %}
-{% set real_home = '%s/%s' % (kafka.prefix, real_name) %}
-{% set alt_name = '%s/kafka' % kafka.prefix %}
 
-{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
+{% set zk_servers = [] %}
+# To allow for flexibility around zookeeper servers (read: multiple ZK clusters)
+# we need to check grains & pillar then fallback to whatever comes back from
+# the salt mines when we go looking for minions with the zookeeper role
+{% with  %}
+  {% set from_mine = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
+# grains > pillar
+  {% set p = salt['pillar.get']('zookeeper:servers') %}
+  {% set from_grain = salt['grains.get']('zookeeper:servers', p) %}
+
+  {% if from_grain is seqence %}
+    {% do zk_servers.extend(from_grain) %}
+  {% else %}
+    {% do zk_servers.extend(from_mine.values()) %}
+  {% endif %}
+{% endwith %}
 
 {% set config = salt['pillar.get']('kafka:config', default=kafka.config, merge=True) %}
 
@@ -20,6 +30,7 @@ include:
 {% elif config.log.dir is string %}
   {% do work_dirs.append(config.log.dir) %}
 {% endif %}
+
 {% if work_dirs|length >= 1 %}
 # create the log dirs for brokers
 kafka|create-directories:
@@ -57,15 +68,15 @@ kafka|install-dist:
   cmd.run:
     - name: curl -L '{{ source_url }}' | tar xz
     - cwd: {{ kafka.prefix }}
-    - unless: test -f {{ real_home }}/config/server.properties
+    - unless: test -f {{ meta.real_home }}/config/server.properties
     - require:
         - sls: kafka
         - file: kafka|install-dist
           
   alternatives.install:
     - name: kafka-home-link
-    - link: {{ alt_name }}
-    - path: {{ real_home }}
+    - link: {{ meta.alt_name }}
+    - path: {{ meta.real_home }}
     - priority: 30
     - require:
       - cmd: kafka|install-dist
@@ -111,7 +122,7 @@ kafka|upstart-config:
     - mode: 644
     - template: jinja
     - context:
-        home: {{ real_home }}
+        home: {{ meta.real_home }}
         confdir: {{ kafka.config_dir }}
         user: {{ kafka.user }}
         log_dir: {{ kafka.data_dir }}

@@ -1,10 +1,22 @@
-{% from  "kafka/defaults.yaml" import rawmap with context %}
-{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
+{% from  "kafka/defaults.yaml" import rawmap, rawconfig with context %}
 
-{% set real_name = kafka.get('name_template') % kafka %}
-{% set default_url = kafka.get('mirror_template') % {'version': kafka.get('version'), 'name': real_name} %}
-{% set real_home = '%s/%s' % (kafka.get('prefix'), real_name) %}
-{% set alt_name = '%s/kafka' % kafka.get('prefix') %}
+{% set lookup = salt['pillar.get']('kafka:lookup', {}) %}
+{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=lookup) %}
 
 {% set meta = {} %}
-{% do meta.update({'real_name': real_name, 'default_url': default_url, 'real_home': real_home, 'alt_name': alt_name}) %}
+
+{% with real_name = kafka.get('name_template') % kafka %}
+  {% set obj = {'version': kafka.get('version'), 'name': real_name} %}
+  {% set home = '%s/%s'|format(kafka.prefix, real_name) %}
+  {% do meta.update({
+    'real_name': real_name,
+    'default_url': kafka.get('mirror_template')|format(obj),
+    'real_home': home,
+    'alt_name': '%s/kafka'|format(kafka.prefix),
+    'bin_dir': '%s/bin'|format(home)
+    })%}
+{% endwith %}
+
+
+
+{% set config = salt['pillar.get']('kafka:config', rawconfig, merge=True) %}
