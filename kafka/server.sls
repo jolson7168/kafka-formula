@@ -1,30 +1,5 @@
-<<<<<<< HEAD
-{% from "kafka/map.jinja" import kafka, meta with context %}
-{% set source_url = salt['pillar.get']('kafka:source_url', meta.default_url) %}
-
-
-{% set zk_servers = [] %}
-# To allow for flexibility around zookeeper servers (read: multiple ZK clusters)
-# we need to check grains & pillar then fallback to whatever comes back from
-# the salt mines when we go looking for minions with the zookeeper role
-{% with  %}
-  {% set from_mine = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
-# grains > pillar
-  {% set p = salt['pillar.get']('zookeeper:servers') %}
-  {% set from_grain = salt['grains.get']('zookeeper:servers', p) %}
-
-  {% if from_grain is seqence %}
-    {% do zk_servers.extend(from_grain) %}
-  {% else %}
-    {% do zk_servers.extend(from_mine.values()) %}
-  {% endif %}
-{% endwith %}
-
-{% set config = salt['pillar.get']('kafka:config', default=kafka.config, merge=True) %}
-=======
 {% from "kafka/map.jinja" import kafka, config with context %}
 {% set source_url = salt['pillar.get']('kafka:source_url', kafka.default_url) %}
->>>>>>> refactor
 
 include:
   - kafka
@@ -73,24 +48,15 @@ kafka|install-dist:
   cmd.run:
     - name: curl -L '{{ source_url }}' | tar xz
     - cwd: {{ kafka.prefix }}
-<<<<<<< HEAD
-    - unless: test -f {{ meta.real_home }}/config/server.properties
-=======
     - unless: test -f {{ kafka.real_home }}/config/server.properties
->>>>>>> refactor
     - require:
         - sls: kafka
         - file: kafka|install-dist
           
   alternatives.install:
     - name: kafka-home-link
-<<<<<<< HEAD
-    - link: {{ meta.alt_name }}
-    - path: {{ meta.real_home }}
-=======
     - link: {{ kafka.alt_name }}
     - path: {{ kafka.real_home }}
->>>>>>> refactor
     - priority: 30
     - require:
       - cmd: kafka|install-dist
@@ -144,11 +110,7 @@ kafka|upstart-config:
     - mode: 644
     - template: jinja
     - context:
-<<<<<<< HEAD
-        home: {{ meta.real_home }}
-=======
         home: {{ kafka.real_home }}
->>>>>>> refactor
         confdir: {{ kafka.config_dir }}
         user: {{ kafka.user }}
         log_dir: {{ kafka.data_dir }}
