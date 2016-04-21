@@ -203,6 +203,4 @@ Ubuntu:
 
     producer:
       purgatory.purge.interval.requests: 1000
-
-      
 {% endload %}

@@ -1,3 +1,0 @@
-[submodule "vagrant/zookeeper"]
-	path = vagrant/zookeeper
-	url = https://github.com/whisklabs/salt-zookeeper-formula.git
