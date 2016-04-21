@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% from "kafka/map.jinja" import kafka, meta with context %}
 {% set source_url = salt['pillar.get']('kafka:source_url', meta.default_url) %}
 
@@ -20,6 +21,10 @@
 {% endwith %}
 
 {% set config = salt['pillar.get']('kafka:config', default=kafka.config, merge=True) %}
+=======
+{% from "kafka/map.jinja" import kafka, config with context %}
+{% set source_url = salt['pillar.get']('kafka:source_url', kafka.default_url) %}
+>>>>>>> refactor
 
 include:
   - kafka
@@ -68,20 +73,38 @@ kafka|install-dist:
   cmd.run:
     - name: curl -L '{{ source_url }}' | tar xz
     - cwd: {{ kafka.prefix }}
+<<<<<<< HEAD
     - unless: test -f {{ meta.real_home }}/config/server.properties
+=======
+    - unless: test -f {{ kafka.real_home }}/config/server.properties
+>>>>>>> refactor
     - require:
         - sls: kafka
         - file: kafka|install-dist
           
   alternatives.install:
     - name: kafka-home-link
+<<<<<<< HEAD
     - link: {{ meta.alt_name }}
     - path: {{ meta.real_home }}
+=======
+    - link: {{ kafka.alt_name }}
+    - path: {{ kafka.real_home }}
+>>>>>>> refactor
     - priority: 30
     - require:
       - cmd: kafka|install-dist
-
-{% with port =  salt['pillar.get']("zookeeper:config:port", 2181) %}
+{% with zk_conn = kafka.zookeeper_conn %}
+  {% set chroot = kafka.get('zookeeper_chroot', None) %}
+  {% if chroot is string %}
+    {% if '/' in zk_conn %}
+      {% set zk = zk_conn.split('/')|first + chroot %}
+    {% else %}
+      {% set zk = '%s%s'|format(zk_conn, chroot) %}
+    {% endif %}
+  {% elif '/' not in zk_conn %}
+    {% set zk = "%s/kafka"|format(zk_conn) %}
+  {% endif %}
 
 kafka|server-conf:
   file.managed:
@@ -95,12 +118,11 @@ kafka|server-conf:
     - require:
       - cmd: kafka|install-dist
     - context:
-        zk_list:
-          {%- for i in zk_servers %}
-          - {{ '%s:%d'|format(i|first, port)}}
-          {%- endfor %}
+        zookeeper_connection: {{ zk }}
+  
 {% endwith %}
 
+        
 kafka|log4j-conf:
   file.managed:
     - name: {{ kafka.config_dir }}/log4j.properties
@@ -122,7 +144,11 @@ kafka|upstart-config:
     - mode: 644
     - template: jinja
     - context:
+<<<<<<< HEAD
         home: {{ meta.real_home }}
+=======
+        home: {{ kafka.real_home }}
+>>>>>>> refactor
         confdir: {{ kafka.config_dir }}
         user: {{ kafka.user }}
         log_dir: {{ kafka.data_dir }}

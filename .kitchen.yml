@@ -1,0 +1,39 @@
+---
+driver:
+  name: vagrant
+  network:
+    - ["private_network", { ip: "192.168.55.55"}]
+
+provisioner:
+  name: salt_solo
+  formula: kafka
+  dependencies:
+    - name: 'zookeeper'
+      path: 'deps/zookeeper-formula'
+    - name: 'sun-java'
+      path: 'deps/sun-java-formula'
+  pillars-from-files:
+    kafka.sls: pillar.example
+  pillars:
+    top.sls:
+      base:
+        "*":
+          - kafka
+  state_top:
+    base:
+      "*":
+        - sun-java
+        - sun-java.env
+        - zookeeper.server
+        - zookeeper.debug
+        - kafka.server
+        - kafka.debug
+        
+platforms:
+  - name: ubuntu-14.04
+  # - name: centos-7.2
+  # - name: freebsd-10.3
+
+suites:
+  - name: default
+

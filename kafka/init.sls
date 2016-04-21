@@ -1,6 +1,10 @@
-{%- from 'kafka/map.jinja' import kafka, meta with context %}
+{%- from 'kafka/map.jinja' import kafka with context %}
 
 kafka|setup:
+  pkg.installed:
+    - pkgs:
+        - curl
+        
   group.present:
     - name: {{ kafka.user }}
 
@@ -11,17 +15,19 @@ kafka|setup:
     - createhome: false
     - system: true
     - gid_from_name: True
-
+    - require:
+        - group: kafka|setup
+          
   file.directory:
     - user: {{ kafka.user }}
     - group: {{ kafka.user }}
     - mode: 755
     - makedirs: true
     - names:
-        - {{ meta.real_home }}
+        - {{ kafka.real_home }}
     - recurse:
         - user
         - group
-    - unless: test -d {{ meta.real_home }}
+    - unless: test -d {{ kafka.real_home }}
     - require:
         - user: kafka|setup

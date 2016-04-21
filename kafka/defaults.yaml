@@ -203,6 +203,119 @@ max:
   connections.per.ip: ~
   connections.per.io.overrides: ~
 
+<<<<<<< HEAD
 producer:
   purgatory.purge.interval.requests: 1000
+=======
+  # :NOTE: nuanced zookeeper connection string scenarios ahead
+  #
+  # Because everyone's ZK setup is different and trying to accomidate everyone is hard,
+  # we've decided to use a string or comma separated string of HOST:PORT combinations
+  # with an optional CHROOT at the end.
+
+  # zookeeper_conn examples:
+  #   localhost:2181/kafka-brokers
+  #   localhost:2181,otherhost:2181/kafka
+  #   localhost:2181  
+  #
+  # 
+  # a.) zookeeper_conn contains a chroot and zookeeper_chroot IS NOT SET
+  #       use zookeeper_conn unmodified
+  #
+  # b.) zookeeper_conn contains a chroot and  zookeeper_chroot IS SET
+  #       replace chroot in zookeeper_conn with whatever was defined in zookeeper_chroot
+  #
+  # c.) zookeeper_conn DOES NOT have a chroot and zookeeper_chroot is undefined/nil
+  #       a hidden default of `/kafka` will be used for a chroot. Theres nothing worse than
+  #       cluttering up / in zookeeper.
+  #
+  zookeeper_conn: 'localhost:2181'
+  zookeeper_chroot: ~
+
+RedHat:
+  user: kafka
+  service: kafka-broker
+  prefix: /usr/local
+  config_dir: /etc/kafka
+  data_dir: /tmp/kafka-logs
+  version: '0.8.2.2'
+  scala_version: '2.10'
+  name_template: 'kafka_%(scala_version)s-%(version)s'
+  mirror_template: 'http://apache.mirrors.tds.net/kafka/%(version)s/%(name)s.tgz'
+  zookeeper_conn: 'localhost:2181'
+  zookeeper_chroot: ~
+
+  
+{% endload %}
+
+
+{% load_yaml as rawconfig %}
+port: 9092
+
+broker:
+  id.generation.enable: true
+      
+compression:
+  # can also be gzip|snappy|lz4
+  # producer will retain the codec set by the producer
+  type: gzip
+
+delete:
+  topic.enable: false
+
+leader:
+  imbalance.check.interval.seconds: 300
+  imbalance.per.broker.percentage: 10
+
+auto:
+  create.topics.enable: True
+  leader.rebalance.enable: True
+
+log:
+  # You can have a single directory
+  dir: ~
+  # or a list of directories for writing logs
+  dirs: ~
+
+  # num of messages to accept before forcing a flush
+  flush.interval.messages: 1000
+
+  # max time before flushing to disk
+  flush.interval.ms: 10000
+
+  # flush.offset.checkpoint.interval.ms: 60000
+  # flush.scheduler.interval.ms: 9223372036854775807
+
+  retention.bytes: -1
+  # check file eligibility for deletion
+  # retention.check.interval.ms: 300000
+
+  # minimum age required for deletion
+  retention.hours: 168
+
+# Must be format: [type, host, port]
+# example:  `ssl://0.0.0.0:9093` or `plaintext://server.mydomain.com:9092`
+listeners:
+  - 'PLAINTEXT://0.0.0.0:9092'
+
+zookeeper:
+  connection.timeout.ms: 6000
+  session.timeout.ms: 6000
+  set.acl: false
+
+
+principal:
+  # namespace of the class to use, override this if you really know your stuff
+  builder.class: ~
+
+num:
+  network.threads: 3
+  io.threads: 8
+
+  # default number of partitions
+  partitions: 3
+  replica.fetchers: 1
+  recovery.threads.per.data.dir: 1
+
+>>>>>>> refactor
 {% endload %}

@@ -5,14 +5,21 @@ kafka:
     version: '0.8.2.2'
     scala_version: '2.10'
     prefix: '/usr/lib/kafka'
-
+    zookeeper_conn: 'localhost:2181'
+        
   config:
     num_partitions: 3
-    zookeeper_chroot: '/kafka'
-    broker_id: {{ grains['get']('node_index', '42') }}
+
+    broker:
+      id: 42
+      
     listeners:
       - "plaintext://:9092"
 
     log:
       dirs:
         - /mnt/kafka/logs/1
+
+zookeeper:
+  config:
+    bind_address: localhost

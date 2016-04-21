@@ -1,0 +1,7 @@
+name: kafka
+os: RedHat, Debian, Ubuntu, Suse, FreeBSD
+os_family: RedHat, Debian, Suse, FreeBSD
+version: 201604
+release: 1
+summary: Formula for installing Apache Kafka
+description: Formula for installing Apache Kafka
