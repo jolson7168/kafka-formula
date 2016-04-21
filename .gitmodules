@@ -1,0 +1,6 @@
+[submodule "deps/zookeeper-formula"]
+	path = deps/zookeeper-formula
+	url = git@github.com:jackscott/zookeeper-formula.git
+[submodule "deps/sun-java-formula"]
+	path = deps/sun-java-formula
+	url = https://github.com/saltstack-formulas/sun-java-formula.git

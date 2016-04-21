@@ -19,3 +19,7 @@ kafka:
     log:
       dirs:
         - /mnt/kafka/logs/1
+
+zookeeper:
+  config:
+    bind_address: localhost

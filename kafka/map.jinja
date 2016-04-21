@@ -16,24 +16,26 @@
 {% endwith %}
 
 
-{%- macro value_format(key, value) -%}
-  {% if value is none %}
-    # nil value for {{ key }}
-  {%- elif value is not string and value is iterable -%}
-    {{ key }}={{ value|join(",") }}
-  {%- else -%}
-    {{ key }}={{ value|yaml_encode }}
-  {%- endif -%}
+{% macro value_format(key, value) -%}
+{%- if value is mapping -%}
+  {%- for k,v in value.items() -%}
+{{ value_format('%s.%s'|format(key, k), v) }}
+{% endfor -%}
+{%- elif value is not string and value is iterable -%}
+{{ key }}="{{ value|join(',') }}"
+{%- elif value is none %}
+# nil value set for {{ key }}
+{%- else -%}
+{{ key }}={{ value|yaml_encode }}
+{%- endif -%}
 {%- endmacro %}
 
-{% macro config_format(section, data) %}
-  {% if data is mapping %}
-    {% for k,v in data.items() %}
-      {{ value_format('%s.%s'|format(section, k), v) }}
-    {% endfor %}
-  {% elif data is sequence %}
-    # not sure what to do about {{ section }} {{ data|join(',') }}
-  {% else %}
-    # {{ data }} is an unknown type
-  {% endif %}
-{% endmacro %}
+{% macro config_format(section, data) -%}
+  {%- if data is mapping -%}
+    {%- for k,v in data.items() -%}
+{{ value_format('%s.%s'|format(section, k), v) }}
+{% endfor -%}
+  {%- else -%}
+{{ value_format(section, data) }}
+  {% endif -%}
+{%- endmacro %}

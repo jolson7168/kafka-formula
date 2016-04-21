@@ -39,6 +39,19 @@ Ubuntu:
   zookeeper_conn: 'localhost:2181'
   zookeeper_chroot: ~
 
+RedHat:
+  user: kafka
+  service: kafka-broker
+  prefix: /usr/local
+  config_dir: /etc/kafka
+  data_dir: /tmp/kafka-logs
+  version: '0.8.2.2'
+  scala_version: '2.10'
+  name_template: 'kafka_%(scala_version)s-%(version)s'
+  mirror_template: 'http://apache.mirrors.tds.net/kafka/%(version)s/%(name)s.tgz'
+  zookeeper_conn: 'localhost:2181'
+  zookeeper_chroot: ~
+
   
 {% endload %}
 
