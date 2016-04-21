@@ -1,10 +1,39 @@
-{% from  "kafka/defaults.yaml" import rawmap with context %}
+{% from  "kafka/defaults.yaml" import rawmap, rawconfig with context %}
+
 {% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
+{% set config = salt['pillar.get']('kafka:config', rawconfig, merge=True) %}
 
-{% set real_name = kafka.get('name_template') % kafka %}
-{% set default_url = kafka.get('mirror_template') % {'version': kafka.get('version'), 'name': real_name} %}
-{% set real_home = '%s/%s' % (kafka.get('prefix'), real_name) %}
-{% set alt_name = '%s/kafka' % kafka.get('prefix') %}
+{% with name = kafka.get('name_template') % kafka %}
 
-{% set meta = {} %}
-{% do meta.update({'real_name': real_name, 'default_url': default_url, 'real_home': real_home, 'alt_name': alt_name}) %}
+  {% do kafka.update({
+    'real_name': name,
+    'default_url': kafka.get('mirror_template') % {'version': kafka.version, 'name': name},
+    'real_home': '%s/%s'|format(kafka.prefix, name),
+    'alt_name': '%s/kafka'|format(kafka.prefix),
+    'config': config
+    }) %}
+
+{% endwith %}
+
+
+{%- macro value_format(key, value) -%}
+  {% if value is none %}
+    # nil value for {{ key }}
+  {%- elif value is not string and value is iterable -%}
+    {{ key }}={{ value|join(",") }}
+  {%- else -%}
+    {{ key }}={{ value|yaml_encode }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro config_format(section, data) %}
+  {% if data is mapping %}
+    {% for k,v in data.items() %}
+      {{ value_format('%s.%s'|format(section, k), v) }}
+    {% endfor %}
+  {% elif data is sequence %}
+    # not sure what to do about {{ section }} {{ data|join(',') }}
+  {% else %}
+    # {{ data }} is an unknown type
+  {% endif %}
+{% endmacro %}

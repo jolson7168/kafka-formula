@@ -1,15 +1,5 @@
-{% from  "kafka/defaults.yaml" import rawmap with context %}
-{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
-
-{% set real_name = kafka.name_template % kafka %}
-{% set default_url = kafka.mirror_template % {'version': kafka.version, 'name': real_name} %}
-{% set source_url = salt['pillar.get']('kafka:source_url', default_url) %}
-{% set real_home = '%s/%s' % (kafka.prefix, real_name) %}
-{% set alt_name = '%s/kafka' % kafka.prefix %}
-
-{% set zk_servers = salt['mine.get']('roles:zookeeper', 'network.ip_addrs', expr_form='grain').values() %}
-
-{% set config = salt['pillar.get']('kafka:config', default=kafka.config, merge=True) %}
+{% from "kafka/map.jinja" import kafka, config with context %}
+{% set source_url = salt['pillar.get']('kafka:source_url', kafka.default_url) %}
 
 include:
   - kafka
@@ -20,6 +10,7 @@ include:
 {% elif config.log.dir is string %}
   {% do work_dirs.append(config.log.dir) %}
 {% endif %}
+
 {% if work_dirs|length >= 1 %}
 # create the log dirs for brokers
 kafka|create-directories:
@@ -57,20 +48,29 @@ kafka|install-dist:
   cmd.run:
     - name: curl -L '{{ source_url }}' | tar xz
     - cwd: {{ kafka.prefix }}
-    - unless: test -f {{ real_home }}/config/server.properties
+    - unless: test -f {{ kafka.real_home }}/config/server.properties
     - require:
         - sls: kafka
         - file: kafka|install-dist
           
   alternatives.install:
     - name: kafka-home-link
-    - link: {{ alt_name }}
-    - path: {{ real_home }}
+    - link: {{ kafka.alt_name }}
+    - path: {{ kafka.real_home }}
     - priority: 30
     - require:
       - cmd: kafka|install-dist
-
-{% with port =  salt['pillar.get']("zookeeper:config:port", 2181) %}
+{% with zk_conn = kafka.zookeeper_conn %}
+  {% set chroot = kafka.get('zookeeper_chroot', None) %}
+  {% if chroot is string %}
+    {% if '/' in zk_conn %}
+      {% set zk = zk_conn.split('/')|first + chroot %}
+    {% else %}
+      {% set zk = '%s%s'|format(zk_conn, chroot) %}
+    {% endif %}
+  {% elif '/' not in zk_conn %}
+    {% set zk = "%s/kafka"|format(zk_conn) %}
+  {% endif %}
 
 kafka|server-conf:
   file.managed:
@@ -84,12 +84,11 @@ kafka|server-conf:
     - require:
       - cmd: kafka|install-dist
     - context:
-        zk_list:
-          {%- for i in zk_servers %}
-          - {{ '%s:%d'|format(i|first, port)}}
-          {%- endfor %}
+        zookeeper_connection: {{ zk }}
+  
 {% endwith %}
 
+        
 kafka|log4j-conf:
   file.managed:
     - name: {{ kafka.config_dir }}/log4j.properties
@@ -111,7 +110,7 @@ kafka|upstart-config:
     - mode: 644
     - template: jinja
     - context:
-        home: {{ real_home }}
+        home: {{ kafka.real_home }}
         confdir: {{ kafka.config_dir }}
         user: {{ kafka.user }}
         log_dir: {{ kafka.data_dir }}

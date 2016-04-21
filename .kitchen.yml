@@ -1,0 +1,28 @@
+---
+driver:
+  name: vagrant
+  network:
+    - ["private_network", { ip: "192.168.55.55"}]
+
+provisioner:
+  name: salt_solo
+  formula: kafka
+  pillars-from-files:
+    kafka.sls: pillar.example
+  pillars:
+    top.sls:
+      base:
+        "*":
+          - kafka
+  state_top:
+    base:
+      "*":
+        - kafka.server
+        - kafka.debug
+        
+platforms:
+  - name: ubuntu-14.04
+
+suites:
+  - name: default
+
