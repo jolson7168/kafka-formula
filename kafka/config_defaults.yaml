@@ -1,0 +1,66 @@
+port: 9092
+
+broker:
+  id.generation.enable: true
+      
+compression:
+  # can also be gzip|snappy|lz4
+  # producer will retain the codec set by the producer
+  type: gzip
+
+delete:
+  topic.enable: false
+
+leader:
+  imbalance.check.interval.seconds: 300
+  imbalance.per.broker.percentage: 10
+
+auto:
+  create.topics.enable: True
+  leader.rebalance.enable: True
+
+log:
+  # You can have a single directory
+  dir: ~
+  # or a list of directories for writing logs
+  dirs: ~
+
+  # num of messages to accept before forcing a flush
+  flush.interval.messages: 1000
+
+  # max time before flushing to disk
+  flush.interval.ms: 10000
+
+  # flush.offset.checkpoint.interval.ms: 60000
+  # flush.scheduler.interval.ms: 9223372036854775807
+
+  retention.bytes: -1
+  # check file eligibility for deletion
+  # retention.check.interval.ms: 300000
+
+  # minimum age required for deletion
+  retention.hours: 168
+
+# Must be format: [type, host, port]
+# example:  `ssl://0.0.0.0:9093` or `plaintext://server.mydomain.com:9092`
+listeners:
+  - 'PLAINTEXT://0.0.0.0:9092'
+
+zookeeper:
+  connection.timeout.ms: 6000
+  session.timeout.ms: 6000
+  set.acl: false
+
+
+principal:
+  # namespace of the class to use, override this if you really know your stuff
+  builder.class: ~
+
+num:
+  network.threads: 3
+  io.threads: 8
+
+  # default number of partitions
+  partitions: 3
+  replica.fetchers: 1
+  recovery.threads.per.data.dir: 1

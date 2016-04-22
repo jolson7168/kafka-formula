@@ -28,7 +28,10 @@ provisioner:
         - zookeeper.debug
         - kafka.server
         - kafka.debug
-        
+  grains:
+    roles:
+      - zookeeper
+      
 platforms:
   - name: ubuntu-14.04
   # - name: centos-7.2

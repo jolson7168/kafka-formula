@@ -1,6 +1,6 @@
 
 {% load_yaml as rawmap %}
-Ubuntu:
+default:
   user: kafka
   service: kafka-broker
   prefix: /usr/local
@@ -9,6 +9,7 @@ Ubuntu:
   
   version: '0.8.2.2'
   scala_version: '2.10'
+
   
   # These are used to build the resources to download and isntall things.
   # Unless kafka changes the format or this mirror is no bueno, dont touch!
@@ -39,88 +40,14 @@ Ubuntu:
   #
   zookeeper_conn: 'localhost:2181'
   zookeeper_chroot: ~
-
-RedHat:
-  user: kafka
-  service: kafka-broker
-  prefix: /usr/local
-  config_dir: /etc/kafka
-  data_dir: /tmp/kafka-logs
-  version: '0.8.2.2'
-  scala_version: '2.10'
-  name_template: 'kafka_%(scala_version)s-%(version)s'
-  mirror_template: 'http://apache.mirrors.tds.net/kafka/%(version)s/%(name)s.tgz'
-  zookeeper_conn: 'localhost:2181'
-  zookeeper_chroot: ~
+Debian: {}
+RedHat: {}
 {% endload %}
 
-
-{% load_yaml as rawconfig %}
-port: 9092
-
-broker:
-  id.generation.enable: true
-      
-compression:
-  # can also be gzip|snappy|lz4
-  # producer will retain the codec set by the producer
-  type: gzip
-
-delete:
-  topic.enable: false
-
-leader:
-  imbalance.check.interval.seconds: 300
-  imbalance.per.broker.percentage: 10
-
-auto:
-  create.topics.enable: True
-  leader.rebalance.enable: True
-
-log:
-  # You can have a single directory
-  dir: ~
-  # or a list of directories for writing logs
-  dirs: ~
-
-  # num of messages to accept before forcing a flush
-  flush.interval.messages: 1000
-
-  # max time before flushing to disk
-  flush.interval.ms: 10000
-
-  # flush.offset.checkpoint.interval.ms: 60000
-  # flush.scheduler.interval.ms: 9223372036854775807
-
-  retention.bytes: -1
-  # check file eligibility for deletion
-  # retention.check.interval.ms: 300000
-
-  # minimum age required for deletion
-  retention.hours: 168
-
-# Must be format: [type, host, port]
-# example:  `ssl://0.0.0.0:9093` or `plaintext://server.mydomain.com:9092`
-listeners:
-  - 'PLAINTEXT://0.0.0.0:9092'
-
-zookeeper:
-  connection.timeout.ms: 6000
-  session.timeout.ms: 6000
-  set.acl: false
-
-
-principal:
-  # namespace of the class to use, override this if you really know your stuff
-  builder.class: ~
-
-num:
-  network.threads: 3
-  io.threads: 8
-
-  # default number of partitions
-  partitions: 3
-  replica.fetchers: 1
-  recovery.threads.per.data.dir: 1
-
+{% load_yaml as kafka_monitor %}
+version: '0.2.1'
+checksum: '002d96d4224c28e69610c520108fd3e1e7b34f777fa9c61d1ba83b4374a014aa'
+port: 8080
+refresh: '10.seconds'
+retain: '2.days'
 {% endload %}

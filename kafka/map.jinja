@@ -1,20 +1,59 @@
-{% from  "kafka/defaults.yaml" import rawmap, rawconfig with context %}
-{% set kafka = salt['grains.filter_by'](rawmap, grain='os', merge=salt['pillar.get']('kafka:lookup')) %}
-{% set config = salt['pillar.get']('kafka:config', rawconfig, merge=True) %}
+{% from  "kafka/defaults.yaml" import rawmap, kafka_monitor with context %}
 
-{% with name = kafka.get('name_template') % kafka %}
+{# load in the default broker configuration map file #}
+{% import_yaml "kafka/config_defaults.yaml" as config_defaults %}
 
+{# sets up the primary map to be used throughout the formula #}
+{% set kafka = salt['grains.filter_by'](rawmap, merge=salt['pillar.get']('kafka:lookup', {}), base='default') %}
+
+{# setup the configuration map used in `server.properties` #}
+{% set config = salt['pillar.get']('kafka:config', config_defaults, merge=True) %}
+
+{# In order to allow for multiple versions of kafka, the version is baked into the
+   directory structure being created so there is a bit of work needed to setup the
+   names of things.  Things are wrapped in a with statement so as to not pollute namespace
+   when the string interpolation happens with the attributes
+#}
+{% with  %}
+  {# ends up looking like: {{ kafka.prefix }}/kafka/{{ kafka.version }} #}
+  {% set name = kafka.get('name_template') % kafka %}
+  {# now that `name` is known, the rest of the attributes can be added/overwritten
+  #}
   {% do kafka.update({
     'real_name': name,
     'default_url': kafka.get('mirror_template') % {'version': kafka.version, 'name': name},
     'real_home': '%s/%s'|format(kafka.prefix, name),
     'alt_name': '%s/kafka'|format(kafka.prefix),
-    'config': config
+    'config': config,
+    'bin_dir': '%s/%s/bin'|format(kafka.prefix, name)
     }) %}
 
+  {# Zookeeper is a hard dependency of Kafka and using `mines` to discover ZK
+  servers becomes unwieldly when multiple NICs are in play, the ZK connection
+  string is populated from pillar data. 
+  #}
+  {% set zk_conn = kafka.zookeeper_conn %}
+  {% set chroot = kafka.get('zookeeper_chroot', None) %}
+  {% if chroot is string %}
+    {# `kafka:lookup:zookeeper_chroot` was set #}
+    {% if '/' in zk_conn %}
+      {# `kafka:lookup:zookeeper_conn` also contains a chroot which is now replaced with {{ chroot }}
+      #}
+      {% set zk = zk_conn.split('/')|first + chroot %}
+    {% else %}
+      {# {{ chroot is defined }} but {{ zk_conn }} didn't contain a chroot so {{ chroot }} is appended #}
+      {% set zk = '%s%s'|format(zk_conn, chroot) %}
+    {% endif %}
+  {% elif '/' not in zk_conn %}
+    {# chroot is None and zk_conn didn't come with one, use default chroot of /kafka
+    #}
+    {% set zk = "%s/kafka"|format(zk_conn) %}
+  {% endif %}
+  {# finally override `kafka.zookeeper_conn` with {{ zk }} #}
+  {% do kafka.update({'zookeeper_conn': zk}) %}
 {% endwith %}
 
-
+{# Formatting individual java properties #}
 {% macro value_format(key, value) -%}
 {%- if value is mapping -%}
   {%- for k,v in value.items() -%}
@@ -29,6 +68,9 @@
 {%- endif -%}
 {%- endmacro %}
 
+{# Create a "section" of java properties where {{ section }}
+is prepended to the keys in {{ data }} and handles top-level
+properties (java properties with no dots '.') #}
 {% macro config_format(section, data) -%}
   {%- if data is mapping -%}
     {%- for k,v in data.items() -%}
@@ -38,3 +80,4 @@
 {{ value_format(section, data) }}
   {% endif -%}
 {%- endmacro %}
+

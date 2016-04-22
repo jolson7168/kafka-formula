@@ -60,17 +60,6 @@ kafka|install-dist:
     - priority: 30
     - require:
       - cmd: kafka|install-dist
-{% with zk_conn = kafka.zookeeper_conn %}
-  {% set chroot = kafka.get('zookeeper_chroot', None) %}
-  {% if chroot is string %}
-    {% if '/' in zk_conn %}
-      {% set zk = zk_conn.split('/')|first + chroot %}
-    {% else %}
-      {% set zk = '%s%s'|format(zk_conn, chroot) %}
-    {% endif %}
-  {% elif '/' not in zk_conn %}
-    {% set zk = "%s/kafka"|format(zk_conn) %}
-  {% endif %}
 
 kafka|server-conf:
   file.managed:
@@ -84,11 +73,8 @@ kafka|server-conf:
     - require:
       - cmd: kafka|install-dist
     - context:
-        zookeeper_connection: {{ zk }}
-  
-{% endwith %}
-
-        
+        zookeeper_connection: {{ kafka.zookeeper_conn }}
+          
 kafka|log4j-conf:
   file.managed:
     - name: {{ kafka.config_dir }}/log4j.properties

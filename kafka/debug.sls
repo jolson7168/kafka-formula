@@ -11,12 +11,17 @@ kafka|debuggin:
     - group: root
     - mode: 644
     - contents: |
-        {% for k,v in kafka.items() %}
-        {% if k == "config" %}
-        {% for x,y in v.items() %}
+        ## lookup map data
+        {% for k,v in kafka.items() -%}
+        {% if k != "config" -%}
         {{ k }} => {{ v }}
+        {% endif -%}
         {% endfor %}
-        {% else %}
-        {{ k }} => {{ v }}
-        {% endif %}
-        {% endfor %}
+        # EOF lookup map
+        
+        # config map data
+        {% for x,y in kafka.config.items() -%}
+        {{ x }} => {{ y }}
+        {% endfor -%}
+        ## EOF config map
+
