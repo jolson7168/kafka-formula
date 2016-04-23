@@ -62,11 +62,11 @@
 {{ value_format('%s.%s'|format(key, k), v) }}
 {% endfor -%}
 {%- elif value is not string and value is iterable -%}
-{{ key }}="{{ value|join(',') }}"
+{{ key }}={{ value|join(',') }}
 {%- elif value is none %}
 # nil value set for {{ key }}
 {%- else -%}
-{{ key }}={{ value|yaml_encode }}
+{{ key }}={{ value }}
 {%- endif -%}
 {%- endmacro %}
 
