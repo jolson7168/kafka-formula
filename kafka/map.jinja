@@ -48,6 +48,8 @@
     {# chroot is None and zk_conn didn't come with one, use default chroot of /kafka
     #}
     {% set zk = "%s/kafka"|format(zk_conn) %}
+  {% else %}
+    {% set zk = zk_conn %}
   {% endif %}
   {# finally override `kafka.zookeeper_conn` with {{ zk }} #}
   {% do kafka.update({'zookeeper_conn': zk}) %}
