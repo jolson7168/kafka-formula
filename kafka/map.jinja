@@ -65,6 +65,8 @@
 {{ key }}={{ value|join(',') }}
 {%- elif value is none %}
 # nil value set for {{ key }}
+{%- elif value is sameas true or value is sameas false -%}
+{{ key }}={{ '%s'|format(value)|lower }}
 {%- else -%}
 {{ key }}={{ value }}
 {%- endif -%}
