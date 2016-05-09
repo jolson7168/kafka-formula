@@ -113,6 +113,21 @@ kafka|enabled-file:
     - contents: |
         ENABLE="yes"
 
+kafka|logrotate:
+  file.managed:
+    - name: /etc/logrotate.d/kafka
+    - source: salt://kafka/files/logrotate.jinja
+    - user: root
+    - group: root
+    - mode: 644
+    - template: jinja
+    - context:
+        log_dir: /var/log/upstart/{{ kafka.service }}
+        user: {{ kafka.user }}
+        group: root
+        rotate: 7
+
+
 kafka|service:
   service.running:
     - name: {{ kafka.service }}

@@ -1,0 +1,14 @@
+# WARNING!
+# This file is managed by Saltstack, any edits will be overwritten.
+# DO NOT EDIT!!!
+
+{{ log_dir }}/*.log {
+   daily
+   rotate {{ rotate|default(3) }}
+   copytruncate
+   compress
+   delaycompress
+   notifempty
+   missingok
+   create 640 {{ user }} {{ group }}
+}
