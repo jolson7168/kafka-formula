@@ -1,13 +1,19 @@
-{% from "kafka/map.jinja" import kafka with context %}
-{% set version = '0.2.1' %}
+{% from "kafka/map.jinja" import kafka_monitor as km with context %}
 {% set jar_name = 'KafkaOffsetMonitor-assembly-%(version)s.jar'|format(version) %}
 
-{% set download_url = 'https://github.com/quantifind/KafkaOffsetMonitor/releases/download/v%(version)s/KafkaOffsetMonitor-assembly-%(version)s.jar'|format(kafka)  %}
-
+{% with  version = km.version   %}
+{% set jar = 'KafkaOffsetMonitor-assembly-%s.jar'|format(version) %}
+{% set url = '%s/%s'|format(km.source_url, jar) %}
 include:
   - kafka
 
 kafka|download-jar:
   file.managed:
-    - name: {{ kafka.real_home }}/lib/KafkaOffsetMonitor-assembly-0.2.1.jar
-    - source: 
+    - name: {{ '%s/lib/%s'|format(kafka.real_home, jar) }}
+    - source: {{ url }}
+    - user: root
+    - group: root
+    - mode: 655
+
+
+{% endwith %}

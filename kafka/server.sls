@@ -24,6 +24,7 @@ kafka|create-directories:
         {%- for i in work_dirs %}
         - {{ i }}
         {%- endfor %}
+        - {{ kafka.log_dir }}
     - recurse:
         - user
         - group
@@ -85,7 +86,7 @@ kafka|log4j-conf:
     - template: jinja
     - priority: 30
     - context:
-        log_dir: {{ kafka.data_dir }}
+        log_dir: {{ kafka.log_dir  }}
     - require:
       - cmd: kafka|install-dist
 

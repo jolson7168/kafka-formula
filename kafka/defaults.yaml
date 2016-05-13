@@ -50,4 +50,6 @@ checksum: '002d96d4224c28e69610c520108fd3e1e7b34f777fa9c61d1ba83b4374a014aa'
 port: 8080
 refresh: '10.seconds'
 retain: '2.days'
+source_url: 'https://github.com/quantifind/KafkaOffsetMonitor/releases/download/v0.2.1'
+
 {% endload %}

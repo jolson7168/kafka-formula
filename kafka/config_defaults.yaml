@@ -1,3 +1,4 @@
+---
 port: 9092
 
 broker:
@@ -16,8 +17,8 @@ leader:
   imbalance.per.broker.percentage: 10
 
 auto:
-  create.topics.enable: True
-  leader.rebalance.enable: True
+  create.topics.enable: true
+  leader.rebalance.enable: true
 
 log:
   # You can have a single directory
