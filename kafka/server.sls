@@ -121,8 +121,8 @@ kafka|logrotate:
 
 kafka|broker-service:
   file.managed:
-    - name: {{ "%s/%s.service"|format(kafka.systemd_location, kafka.service) }}
-    - source: salt://kafka/files/kafka-broker.service
+    - name: {{ "/etc/init/%s.conf"|format(kafka.service) }}
+    - source: salt://kafka/files/kafka.init.conf
     - order: 10
     - mode: 644
     - user: root
