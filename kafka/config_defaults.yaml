@@ -45,7 +45,7 @@ log:
 # Must be format: [type, host, port]
 # example:  `ssl://0.0.0.0:9093` or `plaintext://server.mydomain.com:9092`
 listeners:
-  - 'PLAINTEXT://0.0.0.0:9092'
+  - 'plaintext://0.0.0.0:9092'
 
 zookeeper:
   connection.timeout.ms: 6000
