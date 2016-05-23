@@ -25,6 +25,7 @@ kafka|create-directories:
         - {{ i }}
         {%- endfor %}
         - {{ kafka.log_dir }}
+        - /var/log/kafka
     - recurse:
         - user
         - group
@@ -62,7 +63,7 @@ kafka|install-dist:
     - require:
       - cmd: kafka|install-dist
 
-kafka|server-conf:
+kafka|broker-configuration:
   file.managed:
     - name: {{ kafka.config_dir }}/server.properties
     - source: salt://kafka/files/server.properties
@@ -90,29 +91,18 @@ kafka|log4j-conf:
     - require:
       - cmd: kafka|install-dist
 
-kafka|upstart-config:
-  file.managed:
-    - name: /etc/init/{{ kafka.service }}.conf
-    - source: salt://kafka/files/kafka.init.conf
-    - mode: 644
-    - template: jinja
-    - context:
-        home: {{ kafka.real_home }}
-        confdir: {{ kafka.config_dir }}
-        user: {{ kafka.user }}
-        log_dir: {{ kafka.data_dir }}
-        java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}
-    - require:
-      - file: kafka|server-conf
-
-kafka|enabled-file:
+kafka|broker-defaults:
   file.managed:
     - name: /etc/default/{{ kafka.service }}
     - mode: 644
     - user: root
     - group: root
-    - contents: |
-        ENABLE="yes"
+    - source: salt://kafka/files/broker-defaults.sls
+    - template: jinja
+    - context:
+        log_dir: {{ kafka.log_dir }}
+        config_dir: {{ kafka.config_dir }}
+        java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}        
 
 kafka|logrotate:
   file.managed:
@@ -123,18 +113,37 @@ kafka|logrotate:
     - mode: 644
     - template: jinja
     - context:
-        log_dir: /var/log/upstart/{{ kafka.service }}
+        log_dir: /var/log/kafka
         user: {{ kafka.user }}
         group: root
         rotate: 7
 
 
-kafka|service:
+kafka|broker-service:
+  file.managed:
+    - name: {{ "%s/%s.service"|format(kafka.systemd_location, kafka.service) }}
+    - source: salt://kafka/files/kafka-broker.service
+    - order: 10
+    - mode: 644
+    - user: root
+    - group: root
+    - makedirs: true
+    - template: jinja
+    - context:
+        home: {{ kafka.real_home }}
+        confdir: {{ kafka.config_dir }}
+        user: {{ kafka.user }}
+        log_dir: {{ kafka.log_dir }}
+        java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}
+    - require:
+      - file: kafka|broker-configuration
+        
   service.running:
     - name: {{ kafka.service }}
     - enable: true
     - init_delay: 10
-    - watch:
-      - file: kafka|enabled-file
-      - file: kafka|upstart-config
-      - file: kafka|server-conf
+    - order: 30
+    - require:
+        - file: kafka|broker-service
+        - file: kafka|broker-defaults          
+        - file: kafka|broker-configuration

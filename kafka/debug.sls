@@ -1,4 +1,5 @@
-{% from "kafka/map.jinja" import kafka, config_format, value_format with context  %}
+{% from "kafka/map.jinja" import kafka,  with context  %}
+{% from "kafka/macros.sls" import config_format, value_format with context %}
 
 include:
   - kafka

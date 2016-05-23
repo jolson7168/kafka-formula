@@ -1,11 +1,14 @@
 
-{% load_yaml as rawmap %}
+{% load_yaml as lookup_map %}
 default:
   user: kafka
+  group: kafka
+  uid: 5056
   service: kafka-broker
+  service_timeout: 300
   prefix: /usr/local
   config_dir: /etc/kafka
-  data_dir: /tmp/kafka-logs
+  log_dir: /tmp/kafka-logs
   
   version: '0.8.2.2'
   scala_version: '2.10'
@@ -40,16 +43,32 @@ default:
   #
   zookeeper_conn: 'localhost:2181'
   zookeeper_chroot: ~
-Debian: {}
-RedHat: {}
+
+Debian:
+  systemd_location: /lib/systemd/system/multi-user.target.wants
+  
+RedHat:
+  systemd_location: /etc/systemd/system/multi-user.target.wants
 {% endload %}
 
-{% load_yaml as kafka_monitor %}
+{% load_yaml as mirror_lookup_map %}
+## These fields are all namespaced with `kafka:mirror` and will be merged with
+## whatever you have, if anything, in the corresponding pillar.
+enabled: false
+num_streams: 1
+num_producers: 1
+whitelist: '.*'
+service: kafka-mirror
+queue_size: 10000
+service_timeout: 300
+ulimit: 100000
+{% endload %}
+
+{% load_yaml as monitor_lookup_map %}
 version: '0.2.1'
 checksum: '002d96d4224c28e69610c520108fd3e1e7b34f777fa9c61d1ba83b4374a014aa'
 port: 8080
 refresh: '10.seconds'
 retain: '2.days'
-source_url: 'https://github.com/quantifind/KafkaOffsetMonitor/releases/download/v0.2.1'
-
+source_url: 'https://github.com/quantifind/KafkaOffsetMonitor/releases/download'
 {% endload %}

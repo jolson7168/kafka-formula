@@ -1,0 +1,20 @@
+{% from "kafka/map.jinja" import kafka with context -%}
+
+[Unit]
+Description=Apache Kafka (broker)
+
+[Service]
+User={{ kafka.user }}
+Group={{ kafka.user }}
+EnvironmentFile=/etc/default/{{ kafka.service }}
+ExecStart=/bin/bash $KAFKA_RUN $KAFKA_ARGS $KAFKA_CONFIG
+TimeoutSec=10
+TimeoutStopSec={{ kafka.service_timeout }}
+{% if kafka.ulimit is defined %}
+LimitNOFILE={{ kafka.ulimit }}
+{% endif %}
+StandardOutput=/var/log/kafka/{{ kafka.service }}.log
+StandardError=/var/log/kafka/{{ kafka.service }}_error.log
+
+[Install]
+WantedBy=multi-user.target

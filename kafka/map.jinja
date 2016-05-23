@@ -1,17 +1,18 @@
-{% from  "kafka/defaults.yaml" import rawmap, kafka_monitor with context %}
+{% from  "kafka/defaults.yaml" import lookup_map with context %}
 
 {# load in the default broker configuration map file #}
 {% import_yaml "kafka/config_defaults.yaml" as config_defaults %}
 
 {# sets up the primary map to be used throughout the formula #}
-{% set kafka = salt['grains.filter_by'](rawmap, merge=salt['pillar.get']('kafka:lookup', {}), base='default') %}
+{% set kafka = salt["grains.filter_by"](lookup_map, merge=salt['pillar.get']('kafka:lookup', {}), base='default') %}
 
 {# setup the configuration map used in `server.properties` #}
-{% set config = salt['pillar.get']('kafka:config', config_defaults, merge=True) %}
+{% set config = salt["pillar.get"]('kafka:config', config_defaults, merge=True) %}
+
 {# pull out the broker attribute and possibly add an `id` element to it #}
 {% with broker  = config.get('broker', {}) %}
-  {% if 'id' not in broker %}
-    {% do broker.update({'id': salt['grains.get']('node_index', 999) }) %}
+  {% if "id" not in broker %}
+    {% do broker.update({"id": grains.get("node_index", 999) }) %}
   {% endif %}
   {# replace the original map with our (possibly) updated map#}
   {% do config.update(broker) %}
@@ -26,7 +27,8 @@
     'real_home': '%s/%s'|format(kafka.prefix, name),
     'alt_name': '%s/kafka'|format(kafka.prefix),
     'config': config,
-    'bin_dir': '%s/%s/bin'|format(kafka.prefix, name)
+    'bin_dir': '%s/%s/bin'|format(kafka.prefix, name),
+    'java_home': pillar.get("java_home")
     }) %}
 
   {# Zookeeper is a hard dependency of Kafka and using `mines` to discover ZK
@@ -55,34 +57,4 @@
   {# finally override `kafka.zookeeper_conn` with {{ zk }} #}
   {% do kafka.update({'zookeeper_conn': zk}) %}
 {% endwith %}
-
-{# Formatting individual java properties #}
-{% macro value_format(key, value) -%}
-{%- if value is mapping -%}
-  {%- for k,v in value.items() -%}
-{{ value_format('%s.%s'|format(key, k), v) }}
-{% endfor -%}
-{%- elif value is not string and value is iterable -%}
-{{ key }}={{ value|join(',') }}
-{%- elif value is none %}
-# nil value set for {{ key }}
-{%- elif value == True or value == False -%}
-{{ key }}={{ '%s'|format(value)|lower }}
-{%- else -%}
-{{ key }}={{ value }}
-{%- endif -%}
-{%- endmacro %}
-
-{# Create a "section" of java properties where {{ section }}
-is prepended to the keys in {{ data }} and handles top-level
-properties (java properties with no dots '.') #}
-{% macro config_format(section, data) -%}
-  {%- if data is mapping -%}
-    {%- for k,v in data.items() -%}
-{{ value_format('%s.%s'|format(section, k), v) }}
-{% endfor -%}
-  {%- else -%}
-{{ value_format(section, data) }}
-  {% endif -%}
-{%- endmacro %}
 

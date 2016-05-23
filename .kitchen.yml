@@ -28,6 +28,7 @@ provisioner:
         - zookeeper.debug
         - kafka.server
         - kafka.debug
+        - kafka.mirrormaker
   grains:
     roles:
       - zookeeper

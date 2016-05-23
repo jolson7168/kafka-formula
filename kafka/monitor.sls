@@ -3,7 +3,8 @@
 
 {% with  version = km.version   %}
 {% set jar = 'KafkaOffsetMonitor-assembly-%s.jar'|format(version) %}
-{% set url = '%s/%s'|format(km.source_url, jar) %}
+{% set url = '%s/v%s/%s'|format(km.source_url, version, jar) %}
+
 include:
   - kafka
 
