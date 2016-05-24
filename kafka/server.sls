@@ -118,13 +118,12 @@ kafka|logrotate:
         group: root
         rotate: 7
 
-
 kafka|broker-service:
   file.managed:
-    - name: {{ "/etc/init/%s.conf"|format(kafka.service) }}
-    - source: salt://kafka/files/kafka.init.conf
+    - name: {{ "/etc/init.d/%s"|format(kafka.service) }}
+    - source: salt://kafka/files/kafka-broker.sysv.sh
     - order: 10
-    - mode: 644
+    - mode: 755
     - user: root
     - group: root
     - makedirs: true
@@ -135,6 +134,7 @@ kafka|broker-service:
         user: {{ kafka.user }}
         log_dir: {{ kafka.log_dir }}
         java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}
+        name: {{ kafka.service }}
     - require:
       - file: kafka|broker-configuration
         
