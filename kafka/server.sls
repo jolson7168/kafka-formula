@@ -140,7 +140,7 @@ kafka|broker-service:
 
   # Kafka needs to be able to write to the logs directory
   cmd.run:
-    - name: chown {{ kafka.user }}:{{ kafka.user }} {{ kafka.prefix }}/**/logs
+    - name: chown -R {{ kafka.user }}:{{ kafka.user }} {{ kafka.prefix }}
     - user: root
     - group: root
     - require:
