@@ -137,6 +137,14 @@ kafka|broker-service:
         name: {{ kafka.service }}
     - require:
       - file: kafka|broker-configuration
+
+  # Kafka needs to be able to write to the logs directory
+  cmd.run:
+    - name: chown {{ kafka.user }}:{{ kafka.user }} {{ kafka.prefix }}/**/logs
+    - user: root
+    - group: root
+    - require:
+        - file: kafka|install-dist 
         
   service.running:
     - name: {{ kafka.service }}
@@ -145,5 +153,6 @@ kafka|broker-service:
     - order: 30
     - require:
         - file: kafka|broker-service
+        - cmd: kafka|broker-service
         - file: kafka|broker-defaults          
         - file: kafka|broker-configuration
