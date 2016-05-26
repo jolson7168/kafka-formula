@@ -138,9 +138,11 @@ kafka|broker-service:
     - require:
       - file: kafka|broker-configuration
 
-  # Kafka needs to be able to write to the logs directory
+  # Kafka needs to be able to write to the logs and /state directory
   cmd.run:
-    - name: chown -R {{ kafka.user }}:{{ kafka.user }} {{ kafka.prefix }}
+    - names:
+        - chown -R {{ kafka.user }}:{{ kafka.user }} {{ kafka.prefix }}
+        - chown -R {{ kafka.user }}:{{ kafka.user }} /state
     - user: root
     - group: root
     - require:
