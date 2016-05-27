@@ -5,3 +5,4 @@ JAVA_HOME={{ java_home }}
 KAFKA_RUN=`which kafka-server-start.sh`
 KAFKA_ARGS=""
 KAFKA_CONFIG=${CONFIG_HOME}/server.properties
+KAFKA_HEAP_OPTS="-Xmx{{ heap_size }}M -Xms256M"

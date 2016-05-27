@@ -102,7 +102,8 @@ kafka|broker-defaults:
     - context:
         log_dir: {{ kafka.log_dir }}
         config_dir: {{ kafka.config_dir }}
-        java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}        
+        java_home: {{ salt['pillar.get']('java_home', '/usr/lib/java') }}
+        heap_size: {{ pillar['max_heap'] }}
 
 kafka|logrotate:
   file.managed:
