@@ -26,7 +26,7 @@ start() {
     return 1
   fi
   echo 'Starting service…' >&2
-  local CMD="$SCRIPT $CONFIG_HOME/server.properties &> \"$LOGFILE\" & echo \$!"
+  local CMD="$SCRIPT $CONFIG_HOME/server.properties &> /dev/null& echo \$!"
   touch "$LOGFILE" && chown $RUNAS:$RUNAS "$LOGFILE"
   su -c ". /etc/default/kafka-broker; $CMD" $RUNAS > "$PIDFILE"
   echo 'Service started' >&2
